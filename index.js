@@ -56,8 +56,8 @@ function renderTemplateTaskList(tasksArr, templateTitle = ''){
     if(tasksArr.length === 0){
         console.log('Задач нет');
     }else{
-        tasksArr.map((task, index) => {
-            return console.log(dedent`
+        tasksArr.forEach((task, index) => {
+            console.log(dedent`
                 ${index + 1}: ${task.title}
                 ${task.description}
                 Статус: ${task.isCompleted ? 'Завершена' : 'Активна'}
@@ -147,6 +147,8 @@ function afterErrorCallBack(callback){
             case 2:
                 callback();
                 break;
+            default:
+                process.exit(0);
         }
     }else{
         afterErrorCallBack(callback);
