@@ -149,7 +149,7 @@ function afterErrorCallBack(callback){
                 break;
         }
     }else{
-        afterErrorCallBack();
+        afterErrorCallBack(callback);
     }
 }
 
