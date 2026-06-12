@@ -4,6 +4,16 @@ const dedent = require("dedent");
 let tasks = [];
 let completedTasks = [];
 
+function addTask(){
+    console.log('Введите название задачи');
+    const title = prompt();
+
+    console.log('Введите описание задачи и нажмите Enter');
+    const description = prompt();
+
+    createTask(title, description);
+}
+
 function createTask(title, description){
     const newTask = {
         title,
@@ -15,8 +25,8 @@ function createTask(title, description){
 
     const validateResult = validateTask(newTask);
     validateResult ? 
-        sendTaskToList(newTask) : 
-        renderMessage('Ошибка добавления задачи, проверьте корректность ввода');
+        setTasks(newTask) : 
+        console.log('Ошибка добавления задачи, проверьте корректность ввода');
 }
 
 function validateTask(taskObj){
@@ -31,9 +41,9 @@ function validateNumber(number){
     return Number.isFinite(Number(number));
 }
 
-function sendTaskToList(taskObj){
+function setTasks(taskObj){
     tasks.push(taskObj);
-    renderMessage(`Задача ${taskObj.title} Успешно добавлена`);
+    console.log(`Задача ${taskObj.title} Успешно добавлена`);
 }
 
 function showTasks(){
@@ -42,7 +52,7 @@ function showTasks(){
 }
 
 function renderTemplateTaskList(tasksArr, templateTitle = ''){ 
-    renderMessage(templateTitle);
+    console.log(templateTitle);
     if(tasksArr.length === 0){
         console.log('Задач нет');
     }else{
@@ -59,64 +69,68 @@ function renderTemplateTaskList(tasksArr, templateTitle = ''){
     }
 }
 
-function renderMessage(messageStr){
-    console.log(`\n${messageStr}`);
-}
-
 function completeTask(){
-    if(tasks.length === 0){
-        renderMessage('Список активных задач пуст, завершение невозможно');
-        backToMenu();
-    }else{
-        renderTemplateTaskList(tasks, 'Список активных задач:');
-        renderMessage('Введите номер задачи для завершения');
+    const task = selectTask('выполнение', (task) => {
+        task.isCompleted = true;
+        task.completedDate = new Date().toLocaleString();
+        completedTasks.push(task);
+    });
 
-        const taskId = Number(prompt()) - 1;
-        if(validateNumber(taskId) && taskId >= 0 && taskId < tasks.length){
-            const selectedTask = tasks[taskId]
-            tasks.splice(taskId, 1);
-
-            selectedTask.isCompleted = true;
-            selectedTask.completedDate = new Date().toLocaleString();
-            completedTasks.push(selectedTask);
-
-            renderMessage(`Задача ${selectedTask.title} успешно выполнена`);
-        }else{
-            renderMessage('Ошибка выбора задачи, проверьте введенный номер');
-            afterErrorCallBack(completeTask);
-        }
+    if (task) {
+        console.log(`Задача ${task.title} успешно выполнена`);
+    } else {
+        afterErrorCallBack(completeTask);
     }
 }
 
 function deleteTask(){
-    if(tasks.length === 0){
-        renderMessage('Список активных задач пуст, удаление невозможно');
-        backToMenu();
-    }else{
-        renderTemplateTaskList(tasks, 'Список активных задач:');
-        renderMessage('Введите номер задачи для удаления');
+    const task = selectTask('удаление', () => {});
 
-        const taskId = Number(prompt()) - 1;
-        if(validateNumber(taskId) && taskId >= 1 && taskId < tasks.length){
-            const selectedTask = tasks[taskId]
-            tasks.splice(taskId, 1);
+    if(task){
+        if(!task.isCompleted){
+            console.log('Задача еще не выполнена, удалить?');
+            console.log('1. Да');
+            console.log('2. Нет');
 
-            renderMessage(`Задача ${selectedTask.title} успешно удалена`);
+            const answer = Number(prompt());
+
+            if(answer === 1){
+                console.log(`Задача ${task.title} успешно удалена`);
+            }else{
+                tasks.push(task);
+                console.log('Удаление отменено');
+            }
         }else{
-            renderMessage('Ошибка выбора задачи, проверьте введенный номер');
-            afterErrorCallBack(deleteTask);
+            console.log(`Задача ${task.title} успешно удалена`);
         }
+    }else{
+        afterErrorCallBack(deleteTask);
     }
 }
 
-function addTask(){
-    console.log('Введите название задачи');
-    const title = prompt();
+function selectTask(actionName, callback){
+    if(tasks.length === 0){
+        console.log(`Список активных задач пуст, ${actionName} невозможно`);
+        backToMenu();
+        return;
+    }
+    
+    renderTemplateTaskList(tasks, 'Список активных задач:');
+    console.log(`Введите номер задачи для ${actionName}`);
 
-    console.log('Введите описание задачи и нажмите Enter');
-    const description = prompt();
+    const taskId = Number(prompt()) - 1;
 
-    createTask(title, description);
+    if(!validateNumber(taskId) || taskId < 0 || taskId >= tasks.length){
+        console.log('Ошибка выбора задачи, проверьте введенный номер');
+        return;
+    }
+
+    const selectedTask = tasks[taskId]
+    tasks.splice(taskId, 1);
+
+    callback(selectedTask);
+
+    return selectedTask;
 }
 
 function afterErrorCallBack(callback){
@@ -144,18 +158,6 @@ function renderBaseInfo(){
     console.log('Менеджер задач.');
     console.log('\r')
     showTasks();
-}
-
-function backToMenu(){
-    console.log('\r')
-    console.log('Выберите дальнейшее действие:')
-    console.log('1.Вернуться в меню')
-    let select = Number(prompt());
-     switch(select){
-        case 1:
-            displayAllInfo();
-            break;
-    }
 }
 
 function renderMenu(){
@@ -192,6 +194,17 @@ function menu(){
     backToMenu();
 } 
 
+function backToMenu(){
+    console.log('\r')
+    console.log('Выберите дальнейшее действие:')
+    console.log('1.Вернуться в меню')
+    let select = Number(prompt());
+     switch(select){
+        case 1:
+            displayAllInfo();
+            break;
+    }
+}
 
 function displayAllInfo(){
     renderBaseInfo();
