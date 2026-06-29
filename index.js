@@ -54,7 +54,9 @@ function showTask() {
     completedTasks.forEach((task, index) => renderTask(task, index));
 }
 
-function renderTask({title, description, isCompleted, createdDate, completedDate}, index) {
+function renderTask(task, index) {
+    const {title, description, isCompleted, createdDate, completedDate} = task;
+
     console.log(dedent`
         ${index + 1}: ${title}
         ${description}
@@ -94,7 +96,7 @@ function completeTask() {
     task.isCompleted = true;
     task.completedDate = new Date();
 
-    const taskIndex = tasks.findIndex((title, createdDate) => title === task.title && createdDate.getTime() === task.createdDate.getTime());
+    const taskIndex = tasks.findIndex(taskItem => taskItem.title === task.title && taskItem.createdDate.getTime() === task.createdDate.getTime());
     tasks.splice(taskIndex, 1);
     completedTasks.push(task);
     completedTaskCount += 1;
@@ -133,11 +135,11 @@ function clearTasks() {
 }
 
 function getTaskDescriptions() {
-    return tasks.map((description) => description);
+    return tasks.map(task => task.description);
 }
 
 function getLongTasks() {
-    return tasks.filter((title, description) => title.length > 10 || description.length > 10);
+    return tasks.filter(task => task.title.length > 10 || task.description.length > 10);
 }
 
 function getTasksByDateRange(startDate, endDate, isCompleted = false) {
@@ -145,14 +147,14 @@ function getTasksByDateRange(startDate, endDate, isCompleted = false) {
     const end = new Date(endDate);
 
     if (isCompleted === true) {
-        return completedTasks.filter((completedDate) => completedDate >= start && completedDate <= end);
+        return completedTasks.filter(task => task.completedDate >= start && task.completedDate <= end);
     }
 
-    return tasks.filter((createdDate) => createdDate >= start && createdDate <= end);
+    return tasks.filter(task => task.createdDate >= start && task.createdDate <= end);
 }
 
 function clearShortTasks() {
-    tasks = tasks.filter((title, description) => title.length >= 5 && description.length >= 5);
+    tasks = tasks.filter(task => task.title.length >= 5 && task.description.length >= 5);
 }
 
 function updateTaskTitle(index, newTitle) {
