@@ -47,29 +47,21 @@ function setTask(task) {
 }
 
 function showTask() {
-    renderTemplateTaskList(tasks, "Список активных задач:");
-    renderTemplateTaskList(completedTasks, "Список завершенных задач:");
+    console.log("Список активных задач:");
+    tasks.forEach((task, index) => renderTask(task, index));
+
+    console.log("Список завершенных задач:");
+    completedTasks.forEach((task, index) => renderTask(task, index));
 }
 
-function renderTemplateTaskList(tasksArr, templateTitle = "") {
-    console.log(templateTitle);
-
-    if (tasksArr.length === 0) {
-        console.log("Задач нет");
-        return;
-    }
-
-    tasksArr.forEach(({ title, description, isCompleted, createdDate, completedDate }, index) => {
-        console.log(dedent`
-            ${index + 1}: ${title}
-            ${description}
-            Статус: ${isCompleted ? "Завершена" : "Активна"}
-            Дата создания: ${createdDate.toLocaleString()}
-            ${completedDate ? `Дата завершения: ${completedDate.toLocaleString()}` : ""}
-        `);
-    });
-
-    console.log("");
+function renderTask({title, description, isCompleted, createdDate, completedDate}, index) {
+    console.log(dedent`
+        ${index + 1}: ${title}
+        ${description}
+        Статус: ${isCompleted ? "Завершена" : "Активна"}
+        Дата создания: ${createdDate.toLocaleString()}
+        ${completedDate ? `Дата завершения: ${completedDate.toLocaleString()}` : ""}
+    `);
 }
 
 function selectTask(actionName) {
@@ -78,7 +70,8 @@ function selectTask(actionName) {
         return null;
     }
 
-    renderTemplateTaskList(tasks, "Список активных задач:");
+    console.log("Список активных задач:");
+    tasks.forEach((task, index) => renderTask(task, index));
     console.log(`Введите номер задачи для ${actionName}:`);
 
     const taskIndex = Number(prompt()) - 1;
@@ -101,7 +94,7 @@ function completeTask() {
     task.isCompleted = true;
     task.completedDate = new Date();
 
-    const taskIndex = tasks.indexOf(task);
+    const taskIndex = tasks.findIndex((title, createdDate) => title === task.title && createdDate.getTime() === task.createdDate.getTime());
     tasks.splice(taskIndex, 1);
     completedTasks.push(task);
     completedTaskCount += 1;
@@ -137,6 +130,42 @@ function clearTasks() {
     completedTasks = [];
     completedTaskCount = 0;
     console.log("Все задачи удалены");
+}
+
+function getTaskDescriptions() {
+    return tasks.map((description) => description);
+}
+
+function getLongTasks() {
+    return tasks.filter((title, description) => title.length > 10 || description.length > 10);
+}
+
+function getTasksByDateRange(startDate, endDate, isCompleted = false) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (isCompleted === true) {
+        return completedTasks.filter((completedDate) => completedDate >= start && completedDate <= end);
+    }
+
+    return tasks.filter((createdDate) => createdDate >= start && createdDate <= end);
+}
+
+function clearShortTasks() {
+    tasks = tasks.filter((title, description) => title.length >= 5 && description.length >= 5);
+}
+
+function updateTaskTitle(index, newTitle) {
+    if (!validateNumber(index) || index < 0 || index >= tasks.length) {
+        return null;
+    }
+
+    if (!validateString(newTitle)) {
+        return null;
+    }
+
+    tasks[index].title = newTitle.trim();
+    return tasks[index];
 }
 
 function confirmAction(question) {
